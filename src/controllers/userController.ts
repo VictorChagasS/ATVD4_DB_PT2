@@ -18,11 +18,11 @@ const userController = {
         data_nascimento: new Date(year, month - 1, day),
       };
 
-      if (isNaN(user.cpf) || user.cpf.toString().length !== 11) {
+      if (isNaN(user.cpf)) {
         throw new Error("CPF deve ser um número ou ter 11 dígitos");
       }
       const createdUser = await userService.createUser(user);
-      return res.status(200).json(createdUser);
+      return res.status(201).json(createdUser);
     } catch (error: any) {
       return res.status(400).json({ message: error.message });
     }
