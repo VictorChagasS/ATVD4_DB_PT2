@@ -1,27 +1,40 @@
 import { IUser } from "../controllers/userController";
 
 interface UserService {
-  createUser: (user: IUser) => Promise<IUser>;
-  listAllUsers: () => Promise<IUser[]>;
+  createUser: (
+    cpf: number,
+    nome: string,
+    data_nascimento: Date
+  ) => Promise<IUser>;
+  listById: (id: number) => Promise<IUser | undefined>;
 }
 
 const users: IUser[] = [];
 
 const userService: UserService = {
-  createUser: async (user: IUser) => {
-    const existingUser: IUser | undefined = users.find(
-      (u) => u.cpf === user.cpf
-    );
+  createUser: async (cpf: number, nome: string, data_nascimento: Date) => {
+    const existingUser: IUser | undefined = users.find((u) => u.cpf === cpf);
     if (existingUser) {
-      return Promise.reject(new Error("Já existe um usuário com o mesmo CPF."));
+      throw new Error("Já existe um usuário com o mesmo CPF.");
     }
+
+    const user: IUser = {
+      id: users.length + 1,
+      nome,
+      cpf,
+      data_nascimento,
+    };
 
     users.push(user);
     return user;
   },
 
-  listAllUsers: async () => {
-    return users;
+  listById: async (id: number) => {
+    const user: IUser | undefined = users.find((u) => u.id === id);
+    if (!user) {
+      throw new Error("Usuário não existe.");
+    }
+    return user;
   },
 };
 
