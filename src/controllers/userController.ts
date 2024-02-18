@@ -19,7 +19,7 @@ const userController = {
       };
 
       if (isNaN(user.cpf)) {
-        throw new Error("CPF deve ser um número ou ter 11 dígitos");
+        throw new Error("CPF deve ser um número");
       }
       const createdUser = await userService.createUser(user);
       return res.status(201).json(createdUser);
