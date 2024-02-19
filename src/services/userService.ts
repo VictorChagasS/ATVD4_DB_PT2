@@ -32,7 +32,7 @@ const userService: UserService = {
   listById: async (id: number) => {
     const user: IUser | undefined = users.find((u) => u.id === id);
     if (!user) {
-      throw new Error("Usuário não existe.");
+      throw new Error("Usuário não existe");
     }
     return user;
   },
