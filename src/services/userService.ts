@@ -1,4 +1,6 @@
+// services/userService.ts
 import { IUser } from "../controllers/userController";
+import pool from "../database";
 
 interface UserService {
   createUser: (
@@ -7,34 +9,77 @@ interface UserService {
     data_nascimento: Date
   ) => Promise<IUser>;
   listById: (id: number) => Promise<IUser | undefined>;
+  updateUser: (
+    id: number,
+    nome: string,
+    data_nascimento: Date
+  ) => Promise<IUser | undefined>;
+  deleteUser: (id: number) => Promise<boolean>;
+  listAllUsers: () => Promise<IUser[]>;
 }
-
-const users: IUser[] = [];
 
 const userService: UserService = {
   createUser: async (cpf: number, nome: string, data_nascimento: Date) => {
-    const existingUser: IUser | undefined = users.find((u) => u.cpf === cpf);
-    if (existingUser) {
-      throw new Error("Já existe um usuário com o mesmo CPF.");
+    try {
+      const client = await pool.connect();
+      const result = await client.query(
+        "INSERT INTO usuarios (cpf, nome, data_nascimento) VALUES ($1, $2, $3) RETURNING *",
+        [cpf, nome, data_nascimento]
+      );
+      client.release();
+      return result.rows[0] as IUser;
+    } catch (error) {
+      console.log(error);
+      throw new Error("Erro ao criar usuário no banco de dados");
     }
-
-    const user: IUser = {
-      id: users.length + 1,
-      nome,
-      cpf,
-      data_nascimento,
-    };
-
-    users.push(user);
-    return user;
   },
 
   listById: async (id: number) => {
-    const user: IUser | undefined = users.find((u) => u.id === id);
-    if (!user) {
-      throw new Error("Usuário não existe");
+    try {
+      const client = await pool.connect();
+      const result = await client.query(
+        "SELECT * FROM usuarios WHERE id = $1",
+        [id]
+      );
+      client.release();
+      return result.rows[0] as IUser;
+    } catch (error) {
+      throw new Error("Erro ao buscar usuário no banco de dados");
     }
-    return user;
+  },
+  updateUser: async (id: number, nome: string, data_nascimento: Date) => {
+    try {
+      const client = await pool.connect();
+      const result = await client.query(
+        "UPDATE usuarios SET nome = $1, data_nascimento = $2 WHERE id = $3 RETURNING *",
+        [nome, data_nascimento, id]
+      );
+      client.release();
+      return result.rows[0] as IUser;
+    } catch (error) {
+      throw new Error("Erro ao atualizar usuário no banco de dados");
+    }
+  },
+
+  deleteUser: async (id: number) => {
+    try {
+      const client = await pool.connect();
+      await client.query("DELETE FROM usuarios WHERE id = $1", [id]);
+      client.release();
+      return true;
+    } catch (error) {
+      throw new Error("Erro ao excluir usuário no banco de dados");
+    }
+  },
+  listAllUsers: async () => {
+    try {
+      const client = await pool.connect();
+      const result = await client.query("SELECT * FROM usuarios");
+      client.release();
+      return result.rows as IUser[];
+    } catch (error) {
+      throw new Error("Erro ao buscar todos os usuários no banco de dados");
+    }
   },
 };
 

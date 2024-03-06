@@ -1,7 +1,11 @@
 import express, { Express } from "express";
-import useRouter from "./userRouter";
+import pedidoRouter from "./pedidoRouter";
+import productRouter from "./productRouter";
+import userRouter from "./userRouter";
 const router: Express = express();
 
-router.use("/", useRouter);
+router.use("/user", userRouter);
+router.use("/product", productRouter);
+router.use("/pedido", pedidoRouter);
 
-export default useRouter;
+export default router;

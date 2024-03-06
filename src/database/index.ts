@@ -11,7 +11,7 @@ interface Config {
 const config: Config = {
   user: "postgres",
   host: "localhost",
-  database: "database_01",
+  database: "postgres",
   password: "root",
   port: 5433,
 };
