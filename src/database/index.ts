@@ -6,27 +6,28 @@ interface Config {
   database: string;
   password: string;
   port: number;
+  ssl: any;
 }
 
 const config: Config = {
   user: "postgres",
-  host: "localhost",
-  database: "wikiJogosLocal",
+  host: "database-1.cdfmkmxpvk77.us-east-1.rds.amazonaws.com",
+  database: "postgres",
   password: "postgres",
   port: 5432,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 };
 
 const db = new Pool(config);
 
-db.connect((err) => {
+db.connect((err, client, release) => {
   if (err) {
     return console.error("Erro ao conectar ao PostgreSQL", err.stack);
   }
-  console.log("Conexão com o PostgreSQL estabelecida com sucesso.");
-});
-
-/*
- const createTables = `
+  const createTables = `
+  CREATE SCHEMA IF NOT EXISTS wikiJogosLocal;
     -- Tabela Usuario
     CREATE TABLE IF NOT EXISTS wikiJogosLocal.Usuario (
       ID SERIAL PRIMARY KEY,
@@ -60,13 +61,18 @@ db.connect((err) => {
       FOREIGN KEY (Jogo_ID) REFERENCES wikiJogosLocal.Jogo(ID)
     );
   `;
-*/
+  if (!client) {
+    return console.error("Cliente não definido");
+  }
 
-  /*client.query(createTables, (err, result) => {
+  client.query(createTables, (err, result) => {
     release();
     if (err) {
       return console.error("Erro ao criar tabelas", err.stack);
     }
     console.log("Tabelas criadas com sucesso.");
-  });*/
+  });
+  console.log("Conexão com o PostgreSQL estabelecida com sucesso.");
+});
+
 export default db;
