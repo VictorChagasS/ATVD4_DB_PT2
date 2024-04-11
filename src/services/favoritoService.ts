@@ -7,15 +7,21 @@ interface FavoritoService {
     comum_usuario_id: number,
     jogo_id: number
   ) => Promise<IFavorito>;
-  listFavoritoById: (id: number) => Promise<IFavorito | undefined>;
-  listAllFavoritos: () => Promise<IFavorito[]>;
-
-  updateFavorito: (
-    id: number,
+  listFavoritoById: (
     comum_usuario_id: number,
     jogo_id: number
   ) => Promise<IFavorito | undefined>;
-  deleteFavorito: (id: number) => Promise<boolean>;
+  listAllFavoritos: () => Promise<IFavorito[]>;
+  updateFavorito: (
+    comum_usuario_id: number,
+    jogo_id: number,
+    new_comum_usuario_id: number,
+    new_jogo_id: number
+  ) => Promise<IFavorito | undefined>;
+  deleteFavorito: (
+    comum_usuario_id: number,
+    jogo_id: number
+  ) => Promise<boolean>;
 }
 
 const favoritoService: FavoritoService = {
@@ -34,12 +40,12 @@ const favoritoService: FavoritoService = {
     }
   },
 
-  listFavoritoById: async (id: number) => {
+  listFavoritoById: async (comum_usuario_id: number, jogo_id: number) => {
     try {
       const client = await pool.connect();
       const result = await client.query(
-        "SELECT * FROM wikijogoslocal.favoritos WHERE id = $1",
-        [id]
+        "SELECT * FROM wikijogoslocal.favoritos WHERE comum_usuario_id = $1 AND jogo_id = $2",
+        [comum_usuario_id, jogo_id]
       );
       client.release();
       return result.rows[0] as IFavorito;
@@ -49,15 +55,16 @@ const favoritoService: FavoritoService = {
   },
 
   updateFavorito: async (
-    id: number,
     comum_usuario_id: number,
-    jogo_id: number
+    jogo_id: number,
+    new_comum_usuario_id: number,
+    new_jogo_id: number
   ) => {
     try {
       const client = await pool.connect();
       const result = await client.query(
-        "UPDATE wikijogoslocal.favoritos SET comum_usuario_id = $1, jogo_id = $2 WHERE id = $3 RETURNING *",
-        [comum_usuario_id, jogo_id, id]
+        "UPDATE wikijogoslocal.favoritos SET comum_usuario_id = $1, jogo_id = $2 WHERE comum_usuario_id = $3 AND jogo_id = $4 RETURNING *",
+        [new_comum_usuario_id, new_jogo_id, comum_usuario_id, jogo_id]
       );
       client.release();
       return result.rows[0] as IFavorito;
@@ -66,12 +73,13 @@ const favoritoService: FavoritoService = {
     }
   },
 
-  deleteFavorito: async (id: number) => {
+  deleteFavorito: async (comum_usuario_id: number, jogo_id: number) => {
     try {
       const client = await pool.connect();
-      await client.query("DELETE FROM wikijogoslocal.favoritos WHERE id = $1", [
-        id,
-      ]);
+      await client.query(
+        "DELETE FROM wikijogoslocal.favoritos WHERE comum_usuario_id = $1 AND jogo_id = $2",
+        [comum_usuario_id, jogo_id]
+      );
       client.release();
       return true;
     } catch (error) {
